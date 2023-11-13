@@ -14,4 +14,20 @@ class ARENABATTLE_API AABCharacterPlayer : public AABCharacterBase
 {
 	GENERATED_BODY()
 	
+public:
+	AABCharacterPlayer();
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Camera Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UCameraComponent> FollowCamera;
 };
