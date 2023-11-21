@@ -17,6 +17,8 @@ class ARENABATTLE_API UABCharacterControlData : public UPrimaryDataAsset
 public:
 	UABCharacterControlData();
 
+	// 마우스(컨트롤러) 움직임 따라 캐릭터가 움직이게 하는값(쿼터뷰때 true)
+	// : 1 는 bool형처럼 1바이트만 사용하겠다
 	UPROPERTY(EditAnywhere, Category = Pawn)
 	uint32 bUseControllerRotationYaw : 1;
 
@@ -26,6 +28,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = CharacterMovement)
 	uint32 bUseControllerDesiredRotation : 1;
 
+	// 회전속도
 	UPROPERTY(EditAnywhere, Category = CharacterMovement)
 	FRotator RotationRate;
 
