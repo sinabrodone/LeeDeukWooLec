@@ -27,4 +27,29 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = CharacterControl, Meta = (AllowPrivateAccess = "true"))
 	TMap<ECharacterControlType, class UABCharacterControlData*> CharacterControlManager;
+
+//Combo Attack Section
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<class UAnimMontage> ComboActionMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UABComboAttackData> ComboActionData;
+
+	void ProcessComboCommand();
+
+	void ComboActionBegin();
+	// 인자는 FOnMontageEnded 라는 델레게이트 인자 맞춰준것
+	void ComboActionEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
+	void SetComboCheckTimer();
+	void ComboCheck();
+
+	// 현재 어느 콤보인지 (내부에서만 사용할 것 이기때문에 UPROPERTY 안함) // 0 이면 아직 시작 X
+	int32 CurrentCombo = 0;
+	// 콤보기능을위한 타이머
+	FTimerHandle ComboTimerHandle;
+	bool HasNextComboCommand = false;
+	
 };
