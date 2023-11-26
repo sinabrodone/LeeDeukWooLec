@@ -6,7 +6,10 @@
 #include "ABComboAttackData.h"
 #include "Physics/ABCollision.h"
 #include "Engine/DamageEvents.h"
-
+#include "UI/ABHpBarWidget.h"
+#include "CharacterStat/ABCharacterStatComponent.h"
+#include "UI/ABWidgetComponent.h"
+#include "UI/ABHpBarWidget.h"
 
 // Sets default values
 AABCharacterBase::AABCharacterBase()
@@ -75,6 +78,32 @@ AABCharacterBase::AABCharacterBase()
 	{
 		DeadMontage = DeadMontageRef.Object;
 	}
+
+	//Stat Component
+	Stat = CreateDefaultSubobject<UABCharacterStatComponent>(TEXT("Stat"));
+
+	//Widget Component
+	// 위젯 컴포넌트 자체는 비어있는 껍데기
+	HpBar = CreateDefaultSubobject<UABWidgetComponent>(TEXT("Widget"));
+	// 머리위로 붙이기
+	HpBar->SetupAttachment(GetMesh());
+	HpBar->SetRelativeLocation(FVector(0.0f, 0.0f, 180.f));
+	static ConstructorHelpers::FClassFinder<UUserWidget> HpBarWidget(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/ArenaBattle/UI/WBP_HPBar.WBP_HPBar_C'"));
+	if (HpBarWidget.Class)
+	{
+		HpBar->SetWidgetClass(HpBarWidget.Class);
+		HpBar->SetWidgetSpace(EWidgetSpace::Screen);
+		HpBar->SetDrawSize(FVector2D(150.f, 15.f));
+		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+}
+
+void AABCharacterBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	Stat->OnHpZero.AddUObject(this, &AABCharacterBase::SetDead);
 }
 
 void AABCharacterBase::SetCharacterControlData(const UABCharacterControlData* CharacterControlData)
@@ -205,7 +234,9 @@ void AABCharacterBase::AttackHitCheck()
 float AABCharacterBase::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
-	SetDead();
+	
+	Stat->ApplyDamage(Damage);
+
 	return Damage;
 }
 
@@ -214,6 +245,7 @@ void AABCharacterBase::SetDead()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	PlayDeadAnimation();
 	SetActorEnableCollision(false);
+	HpBar->SetHiddenInGame(true);
 }
 
 void AABCharacterBase::PlayDeadAnimation()
@@ -223,5 +255,16 @@ void AABCharacterBase::PlayDeadAnimation()
 	{
 		AnimInstance->StopAllMontages(0.0f);
 		AnimInstance->Montage_Play(DeadMontage, 1.f);
+	}
+}
+
+void AABCharacterBase::SetupCharacterWidget(UABUserWidget* InUserWidget)
+{
+	UABHpBarWidget* HpBarWidget = Cast<UABHpBarWidget>(InUserWidget);
+	if (HpBarWidget)
+	{
+		HpBarWidget->SetMaxHp(Stat->GetMaxHp());
+		HpBarWidget->UpdateHpBar(Stat->GetCurrentHp());
+		Stat->OnHpChanged.AddUObject(HpBarWidget, &UABHpBarWidget::UpdateHpBar);
 	}
 }
